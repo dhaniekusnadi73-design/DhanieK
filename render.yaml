@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: banksoal-pro
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-5.4-mini
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: PAYMENT_PROVIDER
+        value: manual
+      - key: PAYMENT_RECEIVER_NAME
+        value: Dhanie Kusnadi
+      - key: PAYMENT_RECEIVER_NUMBER
+        value: "085271550657"
+      - key: PAYMENT_SERVER_KEY
+        sync: false
+      - key: XENDIT_CALLBACK_TOKEN
+        sync: false

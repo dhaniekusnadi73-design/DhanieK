@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BankSoal Pro</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="panel controls">
+        <div class="brand-row">
+          <div>
+            <p class="eyebrow">BankSoal Pro</p>
+            <h1>Generator soal SD, SMP, SMA</h1>
+          </div>
+          <span id="planBadge" class="badge">Gratis</span>
+        </div>
+
+        <section class="account-box">
+          <p class="eyebrow">Akun</p>
+          <div id="accountStatus" class="account-status">Belum login. Limit gratis tetap dihitung oleh server.</div>
+          <form id="accountForm" class="account-form">
+            <input id="accountEmail" type="text" inputmode="email" placeholder="email">
+            <input id="accountPassword" type="password" placeholder="password min. 8 karakter">
+            <div class="account-actions">
+              <button type="button" id="loginBtn" class="secondary">Login</button>
+              <button type="button" id="registerBtn" class="secondary">Daftar</button>
+            </div>
+          </form>
+        </section>
+
+        <form id="generatorForm" class="form-grid">
+          <label>
+            Jenjang
+            <select id="level" required>
+              <option value="SD">SD</option>
+              <option value="SMP">SMP</option>
+              <option value="SMA">SMA</option>
+            </select>
+          </label>
+
+          <label>
+            Kelas
+            <select id="grade" required></select>
+          </label>
+
+          <label>
+            Mata pelajaran
+            <select id="subject" required></select>
+          </label>
+
+          <label>
+            Jumlah soal
+            <input id="count" type="number" min="1" max="100" value="20" required>
+          </label>
+
+          <label>
+            Kurikulum utama
+            <select id="curriculum" required>
+              <option value="Kurikulum Merdeka 2024">Kurikulum Merdeka 2024</option>
+              <option value="Kurikulum 2013">Kurikulum 2013</option>
+              <option value="Gabungan Kurikulum Merdeka 2024 + Kurikulum 2013">Gabungan Merdeka + 2013</option>
+            </select>
+          </label>
+
+          <label>
+            Tingkat kesulitan
+            <select id="difficulty" required>
+              <option value="Campuran">Campuran</option>
+              <option value="Mudah">Mudah</option>
+              <option value="Sedang">Sedang</option>
+              <option value="Sulit">Sulit</option>
+            </select>
+          </label>
+
+          <label class="wide">
+            Fokus materi
+            <input id="topic" type="text" placeholder="Opsional, contoh: pecahan, ekosistem, teks eksplanasi">
+          </label>
+
+          <label class="toggle wide">
+            <input id="includeAnswerKey" type="checkbox" checked>
+            <span>Sertakan kunci jawaban dan pembahasan singkat</span>
+          </label>
+
+          <div class="actions wide">
+            <button type="submit">Generate soal</button>
+            <button type="button" id="exportBtn" class="secondary" disabled>Export Word</button>
+          </div>
+        </form>
+
+        <div class="quota-box">
+          <div>
+            <strong id="quotaText">Sisa gratis: 2x minggu ini</strong>
+            <p>Gratis dibatasi 2 kali generate per minggu. Premium membuka pemakaian bebas.</p>
+          </div>
+        </div>
+
+        <section class="payment-box" aria-labelledby="paymentTitle">
+          <div class="payment-head">
+            <div>
+              <p class="eyebrow">Premium</p>
+              <h2 id="paymentTitle">Bayar Rp15.000</h2>
+            </div>
+            <span class="badge">Bebas pakai</span>
+          </div>
+          <div class="payment-methods">
+            <div class="payment-method">
+              <span>DANA</span>
+              <strong>085271550657</strong>
+            </div>
+            <div class="payment-method">
+              <span>GoPay</span>
+              <strong>085271550657</strong>
+            </div>
+          </div>
+          <p class="payment-recipient">Atas nama: <strong>Dhanie Kusnadi</strong></p>
+          <form id="paymentForm" class="payment-form">
+            <label>
+              Email penerima token
+              <input id="buyerEmail" type="text" inputmode="email" placeholder="nama@email.com" required>
+            </label>
+            <label>
+              Metode pembayaran
+              <select id="paymentMethod">
+                <option value="DANA">DANA</option>
+                <option value="GoPay">GoPay</option>
+              </select>
+            </label>
+            <button type="submit">Buat order premium</button>
+          </form>
+          <ol class="payment-steps">
+            <li>Masukkan email dan buat order premium.</li>
+            <li>Transfer Rp15.000 ke DANA atau GoPay sesuai order.</li>
+            <li>Setelah payment gateway mengirim status lunas, token otomatis dikirim ke email.</li>
+          </ol>
+          <div id="paymentStatus" class="payment-status hidden"></div>
+          <button type="button" id="simulatePaidBtn" class="secondary hidden">Simulasi pembayaran berhasil</button>
+        </section>
+
+        <form id="tokenForm" class="token-box">
+          <label>
+            Token premium
+            <input id="tokenInput" type="text" placeholder="Masukkan token setelah transfer Rp15.000">
+          </label>
+          <button type="submit" class="secondary">Aktifkan</button>
+          <p id="tokenMessage" class="message"></p>
+        </form>
+
+        <div class="note">
+          <strong>Catatan komersial:</strong> untuk rilis Play Store/App Store, validasi token dan pembayaran harus dipindah ke backend agar tidak mudah dibobol.
+        </div>
+      </section>
+
+      <section class="panel output">
+        <div class="output-head">
+          <div>
+            <p class="eyebrow">Preview dokumen</p>
+            <h2 id="paperTitle">Belum ada soal</h2>
+          </div>
+          <span id="questionCount" class="badge muted">0 soal</span>
+        </div>
+
+        <div id="emptyState" class="empty-state">
+          Pilih jenjang, kelas, mata pelajaran, lalu generate. Hasilnya bisa diekspor sebagai file Word.
+        </div>
+
+        <article id="paper" class="paper hidden"></article>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

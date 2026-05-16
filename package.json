@@ -1,0 +1,18 @@
+{
+  "name": "banksoal-pro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generator soal SD, SMP, SMA dengan premium payment flow.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "check": "node --check server.js && node --check storage.js && node --check app.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  }
+}
