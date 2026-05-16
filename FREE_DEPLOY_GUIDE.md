@@ -4,10 +4,10 @@ Tujuan: app bisa online dulu tanpa biaya bulanan. Beberapa layanan punya batas f
 
 ## Rekomendasi Gratis
 
-1. Hosting web: Render Free Web Service
+1. Hosting web: Netlify Free
    - Cocok untuk MVP.
-   - Bisa sleep saat tidak aktif.
-   - Gunakan `render.yaml` yang sudah disiapkan.
+   - Netlify menyatakan Free plan bisa dipakai tanpa kartu kredit.
+   - Gunakan `netlify.toml` yang sudah disiapkan.
 
 2. Database PostgreSQL: Neon Free atau Supabase Free
    - Neon Free: cocok untuk PostgreSQL serverless kecil.
@@ -27,22 +27,23 @@ Tujuan: app bisa online dulu tanpa biaya bulanan. Beberapa layanan punya batas f
    - Agar tetap bisa dipakai tanpa gateway, gunakan admin panel `/admin.html` untuk menandai order lunas setelah kamu cek transfer.
    - Otomatis: pakai Midtrans/Xendit QRIS/GoPay webhook. Biasanya tanpa biaya bulanan, tetapi ada fee transaksi.
 
-## Langkah Deploy Gratis di Render + Neon
+## Langkah Deploy Gratis di Netlify + Neon
 
 1. Upload folder project ini ke GitHub.
 2. Buat database gratis di Neon.
 3. Salin connection string Neon ke `DATABASE_URL`.
-4. Buat akun Render.
-5. New Web Service dari repo GitHub.
-6. Render akan membaca `render.yaml`.
-7. Isi environment:
+4. Buat akun Netlify.
+5. Add new site -> Import an existing project.
+6. Pilih repo GitHub `DhanieK`.
+7. Netlify akan membaca `netlify.toml`.
+8. Isi environment:
    - `DATABASE_URL`
-   - `APP_URL`, contoh `https://banksoal-pro.onrender.com`
+   - `APP_URL`, contoh `https://banksoal-pro.netlify.app`
    - `ADMIN_SECRET`, isi secret panjang yang hanya kamu tahu
    - `EMAIL_FROM` jika sudah punya email sender
    - `RESEND_API_KEY` jika ingin email otomatis
-8. Deploy.
-9. Buka URL Render.
+9. Deploy.
+10. Buka URL Netlify.
 
 ## Untuk Pembayaran Otomatis Nanti
 
@@ -69,7 +70,7 @@ Kalau ingin token otomatis setelah bayar:
 
 ## Batasan Free Tier
 
-- Render free bisa sleep, sehingga website mungkin butuh beberapa detik untuk bangun.
+- Netlify Free punya batas build/function/bandwidth, tetapi cukup untuk demo awal.
 - Neon/Supabase free punya batas storage dan compute.
 - Email free punya batas pengiriman.
 - Payment gateway punya fee transaksi.

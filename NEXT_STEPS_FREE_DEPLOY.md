@@ -30,18 +30,18 @@ Ganti `USERNAME` dengan username GitHub kamu.
 4. Copy connection string.
 5. Simpan untuk environment `DATABASE_URL`.
 
-## 3. Deploy Gratis di Render
+## 3. Deploy Gratis di Netlify
 
-1. Buka https://render.com
+1. Buka https://netlify.com
 2. Sign up gratis.
-3. New Web Service.
-4. Connect repo `banksoal-pro`.
-5. Render akan membaca `render.yaml`.
+3. Add new site -> Import an existing project.
+4. Connect repo `DhanieK`.
+5. Netlify akan membaca `netlify.toml`.
 6. Isi environment:
 
 ```text
 DATABASE_URL=connection_string_dari_neon
-APP_URL=https://nama-app.onrender.com
+APP_URL=https://nama-site.netlify.app
 PAYMENT_PROVIDER=manual
 ADMIN_SECRET=buat_secret_panjang_yang_sulit_ditebak
 PAYMENT_RECEIVER_NAME=Dhanie Kusnadi

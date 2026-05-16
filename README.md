@@ -11,11 +11,11 @@ BankSoal Pro adalah web app generator soal SD, SMP, dan SMA dengan:
 - token premium via email
 - webhook payment gateway
 - fallback generator gratis tanpa API AI
-- siap deploy ke Render/Railway/VPS
+- siap deploy ke Netlify/Render/Railway/VPS
 
 ## Jalur Gratis yang Direkomendasikan
 
-- Hosting: Render Free Web Service
+- Hosting: Netlify Free
 - Database: Neon Free atau Supabase Free
 - Email: Resend Free, opsional
 - AI: kosongkan `OPENAI_API_KEY` agar memakai generator template gratis
@@ -35,6 +35,27 @@ http://127.0.0.1:4173
 ```
 
 Tanpa `DATABASE_URL`, app memakai file lokal di `payment-data/`.
+
+## Deploy Netlify Free Tanpa Kartu
+
+1. Upload project ke GitHub.
+2. Buat database gratis di Neon atau Supabase.
+3. Salin connection string PostgreSQL.
+4. Login Netlify dengan GitHub.
+5. Add new site -> Import an existing project.
+6. Pilih repo `DhanieK`.
+7. Netlify akan membaca `netlify.toml`.
+8. Isi environment minimal:
+
+```text
+NODE_ENV=production
+DATABASE_URL=postgresql://...
+APP_URL=https://nama-site.netlify.app
+ADMIN_SECRET=secret_panjang
+PAYMENT_PROVIDER=manual
+PAYMENT_RECEIVER_NAME=Dhanie Kusnadi
+PAYMENT_RECEIVER_NUMBER=085271550657
+```
 
 ## Deploy Render Free
 
