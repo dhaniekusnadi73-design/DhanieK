@@ -6,7 +6,7 @@ BankSoal Pro adalah web app generator soal SD, SMP, dan SMA dengan:
 - soal pilihan ganda sampai 100 butir
 - export Word
 - akun login/register
-- limit gratis 2x per minggu di server
+- limit gratis 1x per tahun di server
 - premium via order pembayaran
 - token premium via email
 - webhook payment gateway

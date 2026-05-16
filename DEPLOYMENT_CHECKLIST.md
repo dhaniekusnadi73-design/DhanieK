@@ -36,7 +36,7 @@ Status saat ini: siap dijadikan web app Node production. Sudah ada UI, register/
 
 6. Limit Pemakaian Server
    - Sudah dicatat di tabel/file `generations`.
-   - Gratis: maksimal 2 generate per user/anon per minggu.
+   - Gratis: maksimal 1 generate per user/anon per tahun.
    - Premium: unlimited.
 
 7. Generator Soal AI

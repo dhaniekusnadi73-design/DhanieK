@@ -9,7 +9,7 @@ const port = Number(process.env.PORT || 4173);
 const isProduction = process.env.NODE_ENV === "production";
 const storage = createStorage(root);
 
-const FREE_LIMIT = 2;
+const FREE_LIMIT = 1;
 const SESSION_DAYS = 30;
 const PAYMENT_AMOUNT = 15000;
 const RECEIVER_NAME = process.env.PAYMENT_RECEIVER_NAME || "Dhanie Kusnadi";
@@ -99,11 +99,8 @@ function makeOrderId() {
   return `BS-${stamp}-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
 }
 
-function getWeekKey(date = new Date()) {
-  const firstDay = new Date(date.getFullYear(), 0, 1);
-  const pastDays = Math.floor((date - firstDay) / 86400000);
-  const week = Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
-  return `${date.getFullYear()}-${String(week).padStart(2, "0")}`;
+function getFreePeriodKey(date = new Date()) {
+  return `${date.getFullYear()}`;
 }
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
@@ -419,10 +416,10 @@ async function handleApi(req, res, pathname) {
       topic: String(body.topic || ""),
       includeAnswerKey: body.includeAnswerKey !== false
     };
-    const weekKey = getWeekKey();
+    const weekKey = getFreePeriodKey();
     if (!user?.premium) {
       const used = await storage.countGenerations({ userId: user?.id || null, anonId, weekKey });
-      if (used >= FREE_LIMIT) return sendJson(res, 402, { error: "Kuota gratis minggu ini sudah habis. Silakan aktifkan premium." });
+      if (used >= FREE_LIMIT) return sendJson(res, 402, { error: "Kuota gratis tahun ini sudah habis. Silakan aktifkan premium." });
     }
     const questions = await generateWithOpenAI(meta);
     await storage.createGeneration({ id: makeId("gen"), userId: user?.id || null, anonId, weekKey, level: meta.level, grade: meta.grade, subject: meta.subject, count: meta.count, createdAt: new Date().toISOString() });

@@ -1,4 +1,4 @@
-const FREE_LIMIT = 2;
+const FREE_LIMIT = 1;
 const TOKEN_PRICE_LABEL = "Rp15.000";
 const VALID_TOKENS = new Set([
   "BANKSOAL-15000",
@@ -143,29 +143,26 @@ let paymentPoller = null;
 let appConfig = { allowPaymentSimulation: false };
 let currentUser = null;
 
-function getWeekKey(date = new Date()) {
-  const firstDay = new Date(date.getFullYear(), 0, 1);
-  const pastDays = Math.floor((date - firstDay) / 86400000);
-  const week = Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
-  return `${date.getFullYear()}-${String(week).padStart(2, "0")}`;
+function getFreePeriodKey(date = new Date()) {
+  return `${date.getFullYear()}`;
 }
 
 function getState() {
   return {
     premium: localStorage.getItem("banksoalPremium") === "true",
-    week: localStorage.getItem("banksoalWeek") || getWeekKey(),
+    week: localStorage.getItem("banksoalWeek") || getFreePeriodKey(),
     uses: Number(localStorage.getItem("banksoalUses") || 0)
   };
 }
 
 function saveUses(uses) {
-  localStorage.setItem("banksoalWeek", getWeekKey());
+  localStorage.setItem("banksoalWeek", getFreePeriodKey());
   localStorage.setItem("banksoalUses", String(uses));
 }
 
 function normalizeWeeklyState() {
   const state = getState();
-  if (state.week !== getWeekKey()) {
+  if (state.week !== getFreePeriodKey()) {
     saveUses(0);
   }
 }
@@ -181,7 +178,7 @@ function updateQuota() {
     return;
   }
   const remaining = Math.max(0, FREE_LIMIT - state.uses);
-  els.quotaText.textContent = `Sisa gratis: ${remaining}x minggu ini`;
+  els.quotaText.textContent = `Sisa gratis: ${remaining}x tahun ini`;
 }
 
 function setPremiumActive(message = "Premium aktif. Pemakaian sekarang bebas.") {
@@ -505,7 +502,7 @@ els.form.addEventListener("submit", async (event) => {
     consumeQuota();
   } catch (error) {
     els.paperTitle.textContent = "Belum ada soal";
-    els.emptyState.textContent = error.message || `Kuota gratis minggu ini sudah habis. Aktifkan premium ${TOKEN_PRICE_LABEL}.`;
+    els.emptyState.textContent = error.message || `Kuota gratis tahun ini sudah habis. Aktifkan premium ${TOKEN_PRICE_LABEL}.`;
   }
 });
 
