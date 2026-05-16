@@ -1,9 +1,9 @@
 const { handler } = require("../netlify/functions/api");
 
 module.exports = async function vercelApi(req, res) {
-  const pathParts = Array.isArray(req.query.path) ? req.query.path : [req.query.path || ""];
+  const pathname = new URL(req.url, "https://banksoal.local").pathname;
   const event = {
-    path: `/api/${pathParts.filter(Boolean).join("/")}`,
+    path: pathname,
     httpMethod: req.method,
     headers: req.headers,
     body: typeof req.body === "string" ? req.body : JSON.stringify(req.body || {})
