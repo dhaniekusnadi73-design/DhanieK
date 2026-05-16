@@ -43,6 +43,7 @@ Ganti `USERNAME` dengan username GitHub kamu.
 DATABASE_URL=connection_string_dari_neon
 APP_URL=https://nama-app.onrender.com
 PAYMENT_PROVIDER=manual
+ADMIN_SECRET=buat_secret_panjang_yang_sulit_ditebak
 PAYMENT_RECEIVER_NAME=Dhanie Kusnadi
 PAYMENT_RECEIVER_NUMBER=085271550657
 ```
@@ -60,8 +61,9 @@ OPENAI_API_KEY=isi_jika_mau_AI_sungguhan
 1. Tes register akun.
 2. Tes generate soal gratis.
 3. Tes order premium manual.
-4. Cek database Neon apakah tabel otomatis dibuat.
-5. Share link Render ke media sosial sebagai demo/early access.
+4. Buka `/admin.html` untuk konfirmasi order manual.
+5. Cek database Neon apakah tabel otomatis dibuat.
+6. Share link Render ke media sosial sebagai demo/early access.
 
 ## Catatan
 

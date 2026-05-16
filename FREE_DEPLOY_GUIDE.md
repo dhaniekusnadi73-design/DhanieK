@@ -24,6 +24,7 @@ Tujuan: app bisa online dulu tanpa biaya bulanan. Beberapa layanan punya batas f
 
 5. Pembayaran
    - Gratis sepenuhnya: mode manual transfer DANA/GoPay, tetapi tidak bisa auto-detect pembayaran.
+   - Agar tetap bisa dipakai tanpa gateway, gunakan admin panel `/admin.html` untuk menandai order lunas setelah kamu cek transfer.
    - Otomatis: pakai Midtrans/Xendit QRIS/GoPay webhook. Biasanya tanpa biaya bulanan, tetapi ada fee transaksi.
 
 ## Langkah Deploy Gratis di Render + Neon
@@ -37,6 +38,7 @@ Tujuan: app bisa online dulu tanpa biaya bulanan. Beberapa layanan punya batas f
 7. Isi environment:
    - `DATABASE_URL`
    - `APP_URL`, contoh `https://banksoal-pro.onrender.com`
+   - `ADMIN_SECRET`, isi secret panjang yang hanya kamu tahu
    - `EMAIL_FROM` jika sudah punya email sender
    - `RESEND_API_KEY` jika ingin email otomatis
 8. Deploy.
@@ -45,6 +47,16 @@ Tujuan: app bisa online dulu tanpa biaya bulanan. Beberapa layanan punya batas f
 ## Untuk Pembayaran Otomatis Nanti
 
 Mode gratis manual tetap bisa jualan, tetapi admin harus cek transfer sendiri.
+
+Untuk mode manual:
+
+1. Pembeli buat order premium.
+2. Pembeli transfer ke DANA/GoPay.
+3. Kamu cek mutasi pembayaran.
+4. Buka `https://domainmu.com/admin.html`.
+5. Masukkan `ADMIN_SECRET` dan Order ID.
+6. Klik `Tandai lunas`.
+7. Sistem membuat token dan mengaktifkan premium.
 
 Kalau ingin token otomatis setelah bayar:
 

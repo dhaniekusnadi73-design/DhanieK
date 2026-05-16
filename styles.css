@@ -39,6 +39,10 @@ select {
   padding: 18px;
 }
 
+.admin-shell {
+  grid-template-columns: 380px 1fr;
+}
+
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);

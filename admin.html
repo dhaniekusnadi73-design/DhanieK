@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin BankSoal Pro</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell admin-shell">
+      <section class="panel controls">
+        <p class="eyebrow">Admin</p>
+        <h1>Konfirmasi Pembayaran</h1>
+        <form id="adminForm" class="token-box">
+          <label>
+            Admin secret
+            <input id="adminSecret" type="password" placeholder="Masukkan ADMIN_SECRET">
+          </label>
+          <label>
+            Order ID
+            <input id="adminOrderId" type="text" placeholder="Contoh: BS-20260516100004-7376CF">
+          </label>
+          <button type="submit">Tandai lunas</button>
+          <button type="button" id="loadOrdersBtn" class="secondary">Lihat order terbaru</button>
+          <p id="adminMessage" class="message"></p>
+        </form>
+      </section>
+
+      <section class="panel output">
+        <div class="output-head">
+          <div>
+            <p class="eyebrow">Order</p>
+            <h2>Daftar terbaru</h2>
+          </div>
+        </div>
+        <div id="adminOrders" class="empty-state">Masukkan admin secret lalu klik lihat order terbaru.</div>
+      </section>
+    </main>
+
+    <script src="admin.js"></script>
+  </body>
+</html>

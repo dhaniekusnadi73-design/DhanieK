@@ -14,6 +14,7 @@ const SESSION_DAYS = 30;
 const PAYMENT_AMOUNT = 15000;
 const RECEIVER_NAME = process.env.PAYMENT_RECEIVER_NAME || "Dhanie Kusnadi";
 const RECEIVER_NUMBER = process.env.PAYMENT_RECEIVER_NUMBER || "085271550657";
+const ADMIN_SECRET = process.env.ADMIN_SECRET || (isProduction ? "" : "dev-admin-secret");
 
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -291,6 +292,25 @@ function normalizePaymentWebhook(body, headers) {
   return { provider: body.provider || "gateway", orderId: body.orderId, paid: String(body.status).toLowerCase() === "paid" };
 }
 
+function isAdminRequest(req) {
+  return Boolean(ADMIN_SECRET) && req.headers["x-admin-secret"] === ADMIN_SECRET;
+}
+
+function sanitizeOrder(order, includeToken = false) {
+  return {
+    id: order.id,
+    email: order.email,
+    amount: order.amount,
+    currency: order.currency,
+    method: order.method,
+    status: order.status,
+    token: includeToken ? order.token || null : undefined,
+    tokenSentAt: order.tokenSentAt || null,
+    paidAt: order.paidAt || null,
+    createdAt: order.createdAt || null
+  };
+}
+
 async function handleApi(req, res, pathname) {
   if (req.method === "GET" && pathname === "/api/config") {
     sendJson(res, 200, {
@@ -301,6 +321,21 @@ async function handleApi(req, res, pathname) {
       receiverNumber: RECEIVER_NUMBER,
       allowPaymentSimulation: !isProduction
     });
+    return true;
+  }
+
+  if (req.method === "GET" && pathname === "/api/admin/orders") {
+    if (!isAdminRequest(req)) return sendJson(res, 401, { error: "Admin secret tidak valid." });
+    const orders = await storage.listOrders(100);
+    sendJson(res, 200, { orders: orders.map((order) => sanitizeOrder(order, true)) });
+    return true;
+  }
+
+  if (req.method === "POST" && pathname === "/api/admin/mark-paid") {
+    if (!isAdminRequest(req)) return sendJson(res, 401, { error: "Admin secret tidak valid." });
+    const body = await readBody(req);
+    const order = await markOrderPaid(String(body.orderId || ""), "manual-admin");
+    sendJson(res, order ? 200 : 404, order ? { ok: true, order: sanitizeOrder(order, true) } : { error: "Order tidak ditemukan." });
     return true;
   }
 

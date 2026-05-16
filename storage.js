@@ -77,6 +77,13 @@ class JsonStorage {
     return this.read("orders").find((order) => order.id === id) || null;
   }
 
+  async listOrders(limit = 50) {
+    return this.read("orders")
+      .slice()
+      .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+      .slice(0, limit);
+  }
+
   async getOrderByToken(token) {
     return this.read("orders").find((order) => order.token === token && order.status === "paid") || null;
   }
@@ -174,6 +181,17 @@ class PostgresStorage {
        paid_at AS "paidAt", token_sent_at AS "tokenSentAt", created_at AS "createdAt" FROM orders WHERE id = $1`,
       [id]
     );
+  }
+
+  async listOrders(limit = 50) {
+    const result = await this.pool.query(
+      `SELECT id, user_id AS "userId", email, amount, currency, method, receiver_name AS "receiverName",
+       receiver_number AS "receiverNumber", status, token, payment_provider AS "paymentProvider",
+       paid_at AS "paidAt", token_sent_at AS "tokenSentAt", created_at AS "createdAt"
+       FROM orders ORDER BY created_at DESC LIMIT $1`,
+      [limit]
+    );
+    return result.rows;
   }
 
   async getOrderByToken(token) {

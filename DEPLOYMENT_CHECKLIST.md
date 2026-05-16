@@ -22,6 +22,7 @@ Status saat ini: siap dijadikan web app Node production. Sudah ada UI, register/
    - Jangan memakai tombol simulasi di production; server sudah memblokir `/api/dev/mark-paid` saat `NODE_ENV=production`.
    - Midtrans: arahkan payment notification URL ke `https://domainmu.com/api/payment-webhook`.
    - Xendit: arahkan webhook invoice/QRIS ke `https://domainmu.com/api/payment-webhook` dan isi `XENDIT_CALLBACK_TOKEN`.
+   - Jalur gratis tanpa gateway: gunakan `/admin.html` dan `ADMIN_SECRET` untuk konfirmasi manual setelah cek transfer.
 
 4. Email Otomatis
    - Gunakan Resend, SMTP, Mailgun, atau SendGrid.

@@ -85,3 +85,13 @@ https://domainmu.com/api/payment-webhook
 ## Catatan
 
 Mode production otomatis mematikan endpoint simulasi pembayaran.
+
+## Admin Manual Payment
+
+Kalau belum memakai payment gateway, gunakan halaman admin:
+
+```text
+/admin.html
+```
+
+Isi `ADMIN_SECRET` di environment production. Setelah pembeli transfer DANA/GoPay, buka halaman admin, masukkan secret dan Order ID, lalu klik `Tandai lunas`. Sistem akan membuat token dan mengaktifkan premium untuk order tersebut.
