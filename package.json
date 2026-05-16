@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "check": "node --check server.js && node --check storage.js && node --check app.js && node --check admin.js && node --check netlify/functions/api.js"
+    "check": "node --check server.js && node --check storage.js && node --check app.js && node --check admin.js && node --check netlify/functions/api.js && node --check api/[...path].js"
   },
   "engines": {
     "node": ">=20"

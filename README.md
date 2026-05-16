@@ -11,7 +11,7 @@ BankSoal Pro adalah web app generator soal SD, SMP, dan SMA dengan:
 - token premium via email
 - webhook payment gateway
 - fallback generator gratis tanpa API AI
-- siap deploy ke Netlify/Render/Railway/VPS
+- siap deploy ke Netlify/Vercel/Render/Railway/VPS
 
 ## Jalur Gratis yang Direkomendasikan
 
@@ -20,6 +20,26 @@ BankSoal Pro adalah web app generator soal SD, SMP, dan SMA dengan:
 - Email: Resend Free, opsional
 - AI: kosongkan `OPENAI_API_KEY` agar memakai generator template gratis
 - Pembayaran: manual DANA/GoPay gratis, atau Midtrans/Xendit untuk auto webhook dengan fee transaksi
+
+## Deploy Vercel
+
+1. Login Vercel dengan GitHub.
+2. Add New Project.
+3. Pilih repo `DhanieK`.
+4. Framework preset: Other.
+5. Build command: kosongkan atau isi `npm install`.
+6. Output directory: kosongkan.
+7. Isi environment minimal:
+
+```text
+NODE_ENV=production
+DATABASE_URL=postgresql://...
+APP_URL=https://nama-project.vercel.app
+ADMIN_SECRET=secret_panjang
+PAYMENT_PROVIDER=manual
+PAYMENT_RECEIVER_NAME=Dhanie Kusnadi
+PAYMENT_RECEIVER_NUMBER=085271550657
+```
 
 ## Jalankan Lokal
 

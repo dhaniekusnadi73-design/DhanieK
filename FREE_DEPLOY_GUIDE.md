@@ -4,10 +4,11 @@ Tujuan: app bisa online dulu tanpa biaya bulanan. Beberapa layanan punya batas f
 
 ## Rekomendasi Gratis
 
-1. Hosting web: Netlify Free
+1. Hosting web: Netlify Free atau Vercel Hobby
    - Cocok untuk MVP.
    - Netlify menyatakan Free plan bisa dipakai tanpa kartu kredit.
    - Gunakan `netlify.toml` yang sudah disiapkan.
+   - Jika Netlify login bermasalah, coba Vercel dengan `vercel.json`.
 
 2. Database PostgreSQL: Neon Free atau Supabase Free
    - Neon Free: cocok untuk PostgreSQL serverless kecil.
