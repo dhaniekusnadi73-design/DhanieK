@@ -178,17 +178,17 @@ class PostgresStorage {
 
   async createOrder(order) {
     return this.one(
-      `INSERT INTO orders (id, user_id, email, amount, currency, method, receiver_name, receiver_number, status, created_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-       RETURNING id, user_id AS "userId", email, amount, currency, method, receiver_name AS "receiverName", receiver_number AS "receiverNumber", status, created_at AS "createdAt"`,
-      [order.id, order.userId, order.email, order.amount, order.currency, order.method, order.receiverName, order.receiverNumber, order.status, order.createdAt]
+      `INSERT INTO orders (id, user_id, email, amount, currency, method, receiver_name, receiver_number, status, payment_url, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+       RETURNING id, user_id AS "userId", email, amount, currency, method, receiver_name AS "receiverName", receiver_number AS "receiverNumber", status, payment_url AS "paymentUrl", created_at AS "createdAt"`,
+      [order.id, order.userId, order.email, order.amount, order.currency, order.method, order.receiverName, order.receiverNumber, order.status, order.paymentUrl || null, order.createdAt]
     );
   }
 
   async getOrder(id) {
     return this.one(
       `SELECT id, user_id AS "userId", email, amount, currency, method, receiver_name AS "receiverName",
-       receiver_number AS "receiverNumber", status, token, payment_provider AS "paymentProvider",
+       receiver_number AS "receiverNumber", status, token, payment_url AS "paymentUrl", payment_provider AS "paymentProvider",
        paid_at AS "paidAt", token_sent_at AS "tokenSentAt", created_at AS "createdAt" FROM orders WHERE id = $1`,
       [id]
     );
@@ -197,7 +197,7 @@ class PostgresStorage {
   async listOrders(limit = 50) {
     const result = await this.pool.query(
       `SELECT id, user_id AS "userId", email, amount, currency, method, receiver_name AS "receiverName",
-       receiver_number AS "receiverNumber", status, token, payment_provider AS "paymentProvider",
+       receiver_number AS "receiverNumber", status, token, payment_url AS "paymentUrl", payment_provider AS "paymentProvider",
        paid_at AS "paidAt", token_sent_at AS "tokenSentAt", created_at AS "createdAt"
        FROM orders ORDER BY created_at DESC LIMIT $1`,
       [limit]
@@ -211,9 +211,9 @@ class PostgresStorage {
 
   async updateOrder(order) {
     return this.one(
-      `UPDATE orders SET status=$2, token=$3, payment_provider=$4, paid_at=$5, token_sent_at=$6
-       WHERE id=$1 RETURNING id, user_id AS "userId", email, amount, currency, method, status, token, token_sent_at AS "tokenSentAt"`,
-      [order.id, order.status, order.token || null, order.paymentProvider || null, order.paidAt || null, order.tokenSentAt || null]
+      `UPDATE orders SET status=$2, token=$3, payment_provider=$4, paid_at=$5, token_sent_at=$6, payment_url=$7
+       WHERE id=$1 RETURNING id, user_id AS "userId", email, amount, currency, method, status, token, payment_url AS "paymentUrl", token_sent_at AS "tokenSentAt"`,
+      [order.id, order.status, order.token || null, order.paymentProvider || null, order.paidAt || null, order.tokenSentAt || null, order.paymentUrl || null]
     );
   }
 

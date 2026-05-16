@@ -311,6 +311,13 @@ button.secondary:hover {
   color: var(--accent-dark);
 }
 
+.payment-link {
+  display: inline-flex;
+  margin-top: 8px;
+  color: var(--accent-dark);
+  font-weight: 800;
+}
+
 #simulatePaidBtn {
   width: 100%;
   margin-top: 10px;

@@ -123,6 +123,29 @@ Untuk Midtrans/Xendit, arahkan webhook ke:
 https://domainmu.com/api/payment-webhook
 ```
 
+## Pembayaran Otomatis Midtrans
+
+Untuk aktivasi otomatis tanpa admin manual:
+
+1. Daftar Midtrans Merchant.
+2. Ambil `Server Key`.
+3. Di Vercel environment, ubah/tambahkan:
+
+```text
+PAYMENT_PROVIDER=midtrans
+PAYMENT_SERVER_KEY=isi_server_key_midtrans
+MIDTRANS_IS_PRODUCTION=false
+APP_URL=https://dhanie-k.vercel.app
+```
+
+4. Di dashboard Midtrans, isi Payment Notification URL:
+
+```text
+https://dhanie-k.vercel.app/api/payment-webhook
+```
+
+Saat order dibuat, sistem akan membuat link pembayaran Midtrans. Setelah pembayaran sukses, Midtrans mengirim webhook dan sistem otomatis mengaktifkan premium.
+
 ## Catatan
 
 Mode production otomatis mematikan endpoint simulasi pembayaran.

@@ -43,6 +43,7 @@ function renderOrders(orders) {
         <div>Email: ${escapeHtml(order.email)}</div>
         <div>Metode: ${escapeHtml(order.method)}</div>
         <div>Nominal: Rp${Number(order.amount).toLocaleString("id-ID")}</div>
+        <div>Link bayar: ${order.paymentUrl ? `<a class="payment-link" href="${escapeHtml(order.paymentUrl)}" target="_blank" rel="noopener">Buka</a>` : "-"}</div>
         <div>Token: ${escapeHtml(order.token || "-")}</div>
       </div>
     </section>

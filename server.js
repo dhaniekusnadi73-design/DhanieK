@@ -15,6 +15,7 @@ const PAYMENT_AMOUNT = 15000;
 const RECEIVER_NAME = process.env.PAYMENT_RECEIVER_NAME || "Dhanie Kusnadi";
 const RECEIVER_NUMBER = process.env.PAYMENT_RECEIVER_NUMBER || "085271550657";
 const ADMIN_SECRET = process.env.ADMIN_SECRET || (isProduction ? "" : "dev-admin-secret");
+const PAYMENT_PROVIDER = process.env.PAYMENT_PROVIDER || "manual";
 
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -164,6 +165,34 @@ async function sendPremiumEmail(order, token) {
   await storage.recordEmail({ id: makeId("email"), to: order.email, subject, body, createdAt: new Date().toISOString() });
 }
 
+async function createMidtransPayment(order) {
+  if (PAYMENT_PROVIDER !== "midtrans" || !process.env.PAYMENT_SERVER_KEY) return order;
+  const isSandbox = process.env.MIDTRANS_IS_PRODUCTION !== "true";
+  const baseUrl = isSandbox ? "https://app.sandbox.midtrans.com" : "https://app.midtrans.com";
+  const auth = Buffer.from(`${process.env.PAYMENT_SERVER_KEY}:`).toString("base64");
+  const response = await fetch(`${baseUrl}/snap/v1/transactions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${auth}`,
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    },
+    body: JSON.stringify({
+      transaction_details: { order_id: order.id, gross_amount: order.amount },
+      customer_details: { email: order.email },
+      item_details: [{ id: "premium-banksoal", price: order.amount, quantity: 1, name: "Premium BankSoal Pro" }],
+      enabled_payments: ["gopay", "qris"],
+      callbacks: { finish: `${process.env.APP_URL || ""}/` },
+      gopay: { enable_callback: true, callback_url: `${process.env.APP_URL || ""}/api/payment-webhook` }
+    })
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.error_messages?.join(" ") || "Gagal membuat pembayaran Midtrans.");
+  order.paymentUrl = payload.redirect_url;
+  order.paymentProvider = "midtrans";
+  return storage.updateOrder(order);
+}
+
 async function markOrderPaid(orderId, paymentProvider = "gateway") {
   const order = await storage.getOrder(orderId);
   if (!order) return null;
@@ -301,6 +330,7 @@ function sanitizeOrder(order, includeToken = false) {
     currency: order.currency,
     method: order.method,
     status: order.status,
+    paymentUrl: order.paymentUrl || null,
     token: includeToken ? order.token || null : undefined,
     tokenSentAt: order.tokenSentAt || null,
     paidAt: order.paidAt || null,
@@ -369,7 +399,7 @@ async function handleApi(req, res, pathname) {
     const email = String(body.email || currentUser?.email || "").trim().toLowerCase();
     const method = String(body.method || "QRIS").trim();
     if (!isEmail(email)) return sendJson(res, 400, { error: "Email tidak valid." });
-    const order = await storage.createOrder({
+    let order = await storage.createOrder({
       id: makeOrderId(),
       userId: currentUser?.id || null,
       email,
@@ -381,6 +411,7 @@ async function handleApi(req, res, pathname) {
       status: "pending",
       createdAt: new Date().toISOString()
     });
+    order = await createMidtransPayment(order);
     sendJson(res, 201, { order });
     return true;
   }
@@ -388,7 +419,7 @@ async function handleApi(req, res, pathname) {
   if (req.method === "GET" && pathname.startsWith("/api/order/")) {
     const order = await storage.getOrder(decodeURIComponent(pathname.replace("/api/order/", "")));
     if (!order) return sendJson(res, 404, { error: "Order tidak ditemukan." });
-    sendJson(res, 200, { order: { id: order.id, email: order.email, amount: order.amount, method: order.method, status: order.status, tokenSentAt: order.tokenSentAt || null } });
+    sendJson(res, 200, { order: { id: order.id, email: order.email, amount: order.amount, method: order.method, status: order.status, paymentUrl: order.paymentUrl || null, tokenSentAt: order.tokenSentAt || null } });
     return true;
   }
 

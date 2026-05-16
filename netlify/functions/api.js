@@ -10,6 +10,7 @@ const PAYMENT_AMOUNT = 15000;
 const RECEIVER_NAME = process.env.PAYMENT_RECEIVER_NAME || "Dhanie Kusnadi";
 const RECEIVER_NUMBER = process.env.PAYMENT_RECEIVER_NUMBER || "085271550657";
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "";
+const PAYMENT_PROVIDER = process.env.PAYMENT_PROVIDER || "manual";
 
 function initStorage() {
   if (!storageReady) storageReady = storage.init();
@@ -111,6 +112,34 @@ async function sendPremiumEmail(order, token) {
   await storage.recordEmail({ id: makeId("email"), to: order.email, subject, body, createdAt: new Date().toISOString() });
 }
 
+async function createMidtransPayment(order) {
+  if (PAYMENT_PROVIDER !== "midtrans" || !process.env.PAYMENT_SERVER_KEY) return order;
+  const isSandbox = process.env.MIDTRANS_IS_PRODUCTION !== "true";
+  const baseUrl = isSandbox ? "https://app.sandbox.midtrans.com" : "https://app.midtrans.com";
+  const auth = Buffer.from(`${process.env.PAYMENT_SERVER_KEY}:`).toString("base64");
+  const response = await fetch(`${baseUrl}/snap/v1/transactions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${auth}`,
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    },
+    body: JSON.stringify({
+      transaction_details: { order_id: order.id, gross_amount: order.amount },
+      customer_details: { email: order.email },
+      item_details: [{ id: "premium-banksoal", price: order.amount, quantity: 1, name: "Premium BankSoal Pro" }],
+      enabled_payments: ["gopay", "qris"],
+      callbacks: { finish: `${process.env.APP_URL || ""}/` },
+      gopay: { enable_callback: true, callback_url: `${process.env.APP_URL || ""}/api/payment-webhook` }
+    })
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.error_messages?.join(" ") || "Gagal membuat pembayaran Midtrans.");
+  order.paymentUrl = payload.redirect_url;
+  order.paymentProvider = "midtrans";
+  return storage.updateOrder(order);
+}
+
 async function markOrderPaid(orderId, paymentProvider = "manual-admin") {
   const order = await storage.getOrder(orderId);
   if (!order) return null;
@@ -134,6 +163,7 @@ function sanitizeOrder(order, includeToken = false) {
     currency: order.currency,
     method: order.method,
     status: order.status,
+    paymentUrl: order.paymentUrl || null,
     token: includeToken ? order.token || null : undefined,
     tokenSentAt: order.tokenSentAt || null,
     paidAt: order.paidAt || null,
@@ -163,6 +193,13 @@ function buildFallbackQuestions(meta) {
 
 function isAdmin(event) {
   return Boolean(ADMIN_SECRET) && event.headers["x-admin-secret"] === ADMIN_SECRET;
+}
+
+function verifyMidtransSignature(body) {
+  if (!process.env.PAYMENT_SERVER_KEY || !body.signature_key) return true;
+  const raw = `${body.order_id}${body.status_code}${body.gross_amount}${process.env.PAYMENT_SERVER_KEY}`;
+  const expected = crypto.createHash("sha512").update(raw).digest("hex");
+  return expected === body.signature_key;
 }
 
 function apiPath(event) {
@@ -206,7 +243,7 @@ exports.handler = async (event) => {
       const user = await getCurrentUser(event);
       const email = String(body.email || user?.email || "").trim().toLowerCase();
       if (!isEmail(email)) return json(400, { error: "Email tidak valid." });
-      const order = await storage.createOrder({
+      let order = await storage.createOrder({
         id: makeOrderId(),
         userId: user?.id || null,
         email,
@@ -218,6 +255,7 @@ exports.handler = async (event) => {
         status: "pending",
         createdAt: new Date().toISOString()
       });
+      order = await createMidtransPayment(order);
       return json(201, { order });
     }
 
@@ -271,6 +309,7 @@ exports.handler = async (event) => {
     }
 
     if (method === "POST" && path === "/api/payment-webhook") {
+      if (body.order_id && !verifyMidtransSignature(body)) return json(403, { error: "Signature webhook tidak valid." });
       const orderId = String(body.orderId || body.order_id || body.external_id || "");
       const paid = ["paid", "settlement", "capture", "PAID"].includes(String(body.status || body.transaction_status));
       if (!paid) return json(200, { ok: true, ignored: true });

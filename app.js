@@ -198,6 +198,7 @@ function renderPaymentStatus(order, extra = "") {
     Metode: ${escapeHtml(order.method)}<br>
     Nominal: Rp${Number(order.amount).toLocaleString("id-ID")}<br>
     Status: ${escapeHtml(statusLabel)}
+    ${order.paymentUrl ? `<br><a class="payment-link" href="${escapeHtml(order.paymentUrl)}" target="_blank" rel="noopener">Bayar otomatis sekarang</a>` : ""}
     ${extra ? `<br>${extra}` : ""}
   `;
   els.simulatePaidBtn.classList.toggle("hidden", order.status === "paid" || !appConfig.allowPaymentSimulation);
@@ -542,7 +543,10 @@ els.paymentForm.addEventListener("submit", async (event) => {
     });
     currentOrderId = payload.order.id;
     localStorage.setItem("banksoalOrderId", currentOrderId);
-    renderPaymentStatus(payload.order, "Silakan transfer ke nomor 085271550657 atas nama Dhanie Kusnadi.");
+    renderPaymentStatus(
+      payload.order,
+      payload.order.paymentUrl ? "Selesaikan pembayaran melalui halaman pembayaran otomatis." : "Silakan transfer ke nomor 085271550657 atas nama Dhanie Kusnadi."
+    );
     startPaymentPolling();
   } catch (error) {
     els.paymentStatus.textContent = error.message;

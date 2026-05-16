@@ -24,11 +24,14 @@ CREATE TABLE IF NOT EXISTS orders (
   receiver_number TEXT NOT NULL,
   status TEXT NOT NULL,
   token TEXT,
+  payment_url TEXT,
   payment_provider TEXT,
   paid_at TIMESTAMPTZ,
   token_sent_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_url TEXT;
 
 CREATE TABLE IF NOT EXISTS generations (
   id TEXT PRIMARY KEY,
