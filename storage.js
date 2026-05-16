@@ -127,7 +127,18 @@ class PostgresStorage {
     const { Pool } = await import("pg");
     this.pool = new Pool({ connectionString: this.connectionString, ssl: process.env.PGSSL === "false" ? false : { rejectUnauthorized: false } });
     const schema = fs.readFileSync(path.join(__dirname, "schema.sql"), "utf8");
-    await this.pool.query(schema);
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query("SELECT pg_advisory_xact_lock(73520420260516)");
+      await client.query(schema);
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async one(query, params = []) {
