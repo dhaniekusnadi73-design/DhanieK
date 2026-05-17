@@ -77,6 +77,19 @@ function getFreePeriodKey(date = new Date()) {
   return `${date.getFullYear()}`;
 }
 
+function getVariationSeed(value) {
+  return String(value || crypto.randomBytes(6).toString("hex"));
+}
+
+function seedOffset(seed) {
+  return String(seed).split("").reduce((total, char) => total + char.charCodeAt(0), 0);
+}
+
+const semesterFocus = {
+  "1": ["konsep dasar", "pemahaman awal", "contoh dekat kehidupan sehari-hari", "identifikasi informasi penting"],
+  "2": ["penerapan lanjutan", "integrasi beberapa konsep", "pemecahan masalah kontekstual", "evaluasi akhir pembelajaran"]
+};
+
 function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
   const hash = crypto.pbkdf2Sync(password, salt, 210000, 32, "sha256").toString("hex");
   return `${salt}:${hash}`;
@@ -187,20 +200,34 @@ function sanitizeOrder(order, includeToken = false) {
 
 function buildFallbackQuestions(meta) {
   const topics = meta.topic ? String(meta.topic).split(",").map((item) => item.trim()).filter(Boolean) : ["konsep utama", "penerapan sehari-hari", "analisis sederhana"];
+  const offset = seedOffset(meta.variationSeed);
+  const focuses = semesterFocus[meta.semester] || semesterFocus["1"];
+  const stems = [
+    "Pada materi {topic}, pernyataan yang paling tepat untuk kelas {grade} {level} adalah ...",
+    "Dalam situasi pembelajaran {topic}, keputusan paling tepat yang menunjukkan pemahaman adalah ...",
+    "Jika peserta didik menemukan kasus tentang {topic}, kesimpulan yang paling sesuai adalah ...",
+    "Contoh penerapan {topic} yang sesuai dengan pembelajaran adalah ..."
+  ];
   return Array.from({ length: meta.count }, (_, index) => {
-    const topic = topics[index % topics.length];
-    const answerIndex = index % 4;
-    const correct = `menerapkan konsep ${topic} sesuai konteks soal dan data yang tersedia`;
+    const variedIndex = index + offset;
+    const topic = topics[variedIndex % topics.length];
+    const focus = focuses[variedIndex % focuses.length];
+    const answerIndex = variedIndex % 4;
+    const correct = `menerapkan konsep ${topic} dengan fokus ${focus} sesuai konteks soal dan data yang tersedia`;
     const options = [correct, "menghafal istilah tanpa memahami konteks", "mengabaikan informasi penting pada soal", "memilih jawaban berdasarkan tebakan"];
     options.splice(answerIndex, 0, options.shift());
+    const stem = stems[variedIndex % stems.length]
+      .replaceAll("{topic}", topic)
+      .replaceAll("{grade}", meta.grade)
+      .replaceAll("{level}", meta.level);
     return {
       number: index + 1,
-      stem: `Pada materi ${topic}, pernyataan yang paling tepat untuk kelas ${meta.grade} ${meta.level} adalah ...`,
+      stem: `${stem} Fokus semester ${meta.semester}: ${focus}.`,
       topic,
-      difficulty: meta.difficulty === "Campuran" ? ["Mudah", "Sedang", "Sulit"][index % 3] : meta.difficulty,
+      difficulty: meta.difficulty === "Campuran" ? ["Mudah", "Sedang", "Sulit"][variedIndex % 3] : meta.difficulty,
       options,
       answer: String.fromCharCode(65 + answerIndex),
-      explanation: `Jawaban benar karena menerapkan ${topic} sesuai ${meta.curriculum}.`
+      explanation: `Jawaban benar karena menerapkan ${topic} pada fokus ${focus} sesuai ${meta.curriculum}.`
     };
   });
 }
@@ -305,11 +332,13 @@ exports.handler = async (event) => {
         level: String(body.level || "SD"),
         grade: String(body.grade || "1"),
         subject: String(body.subject || "Matematika"),
+        semester: String(body.semester || "1") === "2" ? "2" : "1",
         count: Math.max(1, Math.min(100, Number(body.count || 10))),
         curriculum: String(body.curriculum || "Kurikulum Merdeka 2024"),
         difficulty: String(body.difficulty || "Campuran"),
         topic: String(body.topic || ""),
-        includeAnswerKey: body.includeAnswerKey !== false
+        includeAnswerKey: body.includeAnswerKey !== false,
+        variationSeed: getVariationSeed(body.variationSeed)
       };
       const weekKey = getFreePeriodKey();
       if (!user?.premium) {
@@ -317,7 +346,7 @@ exports.handler = async (event) => {
         if (used >= FREE_LIMIT) return json(402, { error: "Kuota gratis tahun ini sudah habis. Silakan aktifkan premium." });
       }
       const questions = buildFallbackQuestions(meta);
-      await storage.createGeneration({ id: makeId("gen"), userId: user?.id || null, anonId, weekKey, level: meta.level, grade: meta.grade, subject: meta.subject, count: meta.count, createdAt: new Date().toISOString() });
+      await storage.createGeneration({ id: makeId("gen"), userId: user?.id || null, anonId, weekKey, level: meta.level, grade: meta.grade, semester: meta.semester, subject: meta.subject, count: meta.count, createdAt: new Date().toISOString() });
       return json(200, { meta, questions, premium: Boolean(user?.premium) }, { "Set-Cookie": cookie("banksoal_anon", anonId, 60 * 60 * 24 * 365) });
     }
 

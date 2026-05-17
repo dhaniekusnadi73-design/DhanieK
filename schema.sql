@@ -40,7 +40,10 @@ CREATE TABLE IF NOT EXISTS generations (
   week_key TEXT NOT NULL,
   level TEXT NOT NULL,
   grade TEXT NOT NULL,
+  semester TEXT NOT NULL DEFAULT '1',
   subject TEXT NOT NULL,
   count INTEGER NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE generations ADD COLUMN IF NOT EXISTS semester TEXT NOT NULL DEFAULT '1';

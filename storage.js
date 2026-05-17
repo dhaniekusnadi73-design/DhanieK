@@ -230,8 +230,8 @@ class PostgresStorage {
 
   async createGeneration(generation) {
     await this.pool.query(
-      "INSERT INTO generations (id, user_id, anon_id, week_key, level, grade, subject, count, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)",
-      [generation.id, generation.userId, generation.anonId, generation.weekKey, generation.level, generation.grade, generation.subject, generation.count, generation.createdAt]
+      "INSERT INTO generations (id, user_id, anon_id, week_key, level, grade, semester, subject, count, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
+      [generation.id, generation.userId, generation.anonId, generation.weekKey, generation.level, generation.grade, generation.semester || "1", generation.subject, generation.count, generation.createdAt]
     );
     return generation;
   }

@@ -45,6 +45,11 @@ const curriculumNotes = {
   "Gabungan Kurikulum Merdeka 2024 + Kurikulum 2013": "Menggabungkan CP Kurikulum Merdeka 2024 dengan acuan KD Kurikulum 2013 untuk variasi latihan."
 };
 
+const semesterFocus = {
+  "1": ["konsep dasar", "pemahaman awal", "contoh dekat kehidupan sehari-hari", "identifikasi informasi penting"],
+  "2": ["penerapan lanjutan", "integrasi beberapa konsep", "pemecahan masalah kontekstual", "evaluasi akhir pembelajaran"]
+};
+
 const materialBank = {
   Matematika: ["bilangan", "operasi hitung", "pecahan", "perbandingan", "geometri", "pengukuran", "data dan peluang", "aljabar", "fungsi", "statistika"],
   "Bahasa Indonesia": ["ide pokok", "teks narasi", "teks deskripsi", "teks eksplanasi", "teks argumentasi", "puisi", "kaidah bahasa", "simpulan bacaan", "teks laporan"],
@@ -110,6 +115,7 @@ const els = {
   level: document.querySelector("#level"),
   grade: document.querySelector("#grade"),
   subject: document.querySelector("#subject"),
+  semester: document.querySelector("#semester"),
   count: document.querySelector("#count"),
   curriculum: document.querySelector("#curriculum"),
   difficulty: document.querySelector("#difficulty"),
@@ -270,6 +276,12 @@ function pick(items, index) {
   return items[index % items.length];
 }
 
+function makeVariationSeed() {
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  return `${Date.now()}-${array[0]}`;
+}
+
 function shuffleAnswer(options, answer, index) {
   const answerIndex = index % 4;
   const result = options.filter((option) => option !== answer).slice(0, 3);
@@ -332,18 +344,22 @@ function generateQuestions(meta) {
   const topics = meta.topic
     ? meta.topic.split(",").map((item) => item.trim()).filter(Boolean)
     : materialBank[meta.subject] || materialBank.IPAS;
+  const offset = Number(String(meta.variationSeed || "").replace(/\D/g, "").slice(-4)) || Math.floor(Math.random() * 9999);
+  const focuses = semesterFocus[meta.semester] || semesterFocus["1"];
 
   return Array.from({ length: meta.count }, (_, index) => {
-    const topic = pick(topics, index);
+    const variedIndex = index + offset;
+    const topic = pick(topics, variedIndex);
+    const focus = pick(focuses, variedIndex);
     const templateList = stemTemplates[meta.subject] || stemTemplates.default;
-    const template = pick(templateList, index);
+    const template = pick(templateList, variedIndex);
     const stem = template
       .replaceAll("{topic}", topic)
       .replaceAll("{grade}", meta.grade)
-      .replaceAll("{level}", meta.level);
-    const optionSet = buildOptions(meta.subject, topic, index);
+      .replaceAll("{level}", meta.level) + ` Fokus soal: ${focus} semester ${meta.semester}.`;
+    const optionSet = buildOptions(meta.subject, topic, variedIndex);
     const difficulty = meta.difficulty === "Campuran"
-      ? pick(["Mudah", "Sedang", "Sulit"], index)
+      ? pick(["Mudah", "Sedang", "Sulit"], variedIndex)
       : meta.difficulty;
     return {
       number: index + 1,
@@ -352,7 +368,7 @@ function generateQuestions(meta) {
       difficulty,
       options: optionSet.options,
       answer: optionSet.answer,
-      explanation: `Jawaban benar karena pilihan tersebut menerapkan konsep ${topic} sesuai ${meta.curriculum}.`
+      explanation: `Jawaban benar karena pilihan tersebut menerapkan konsep ${topic} pada fokus ${focus} sesuai ${meta.curriculum}.`
     };
   });
 }
@@ -376,7 +392,7 @@ function escapeHtml(text) {
 }
 
 function renderPaper(meta, questions) {
-  const title = `Soal ${meta.subject} Kelas ${meta.grade} ${meta.level}`;
+  const title = `Soal ${meta.subject} Kelas ${meta.grade} ${meta.level} Semester ${meta.semester}`;
   els.paperTitle.textContent = title;
   els.questionCount.textContent = `${questions.length} soal`;
   els.emptyState.classList.add("hidden");
@@ -405,6 +421,7 @@ function renderPaper(meta, questions) {
       <div class="meta-grid">
         <div>Jenjang: ${escapeHtml(meta.level)}</div>
         <div>Kelas: ${escapeHtml(meta.grade)}</div>
+        <div>Semester: ${escapeHtml(meta.semester)}</div>
         <div>Mata pelajaran: ${escapeHtml(meta.subject)}</div>
         <div>Kurikulum: ${escapeHtml(meta.curriculum)}</div>
         <div>Jumlah: ${questions.length} soal</div>
@@ -422,11 +439,13 @@ function getMetaFromForm() {
     level: els.level.value,
     grade: els.grade.value,
     subject: els.subject.value,
+    semester: els.semester.value,
     count: Math.max(1, Math.min(100, Number(els.count.value || 1))),
     curriculum: els.curriculum.value,
     difficulty: els.difficulty.value,
     topic: els.topic.value.trim(),
-    includeAnswerKey: els.includeAnswerKey.checked
+    includeAnswerKey: els.includeAnswerKey.checked,
+    variationSeed: makeVariationSeed()
   };
 }
 
@@ -442,7 +461,7 @@ function exportWord() {
       .answer-key { margin-top: 24px; border-top: 1px solid #999; padding-top: 12px; }
     </style>
   `;
-  const title = `Soal ${generatedMeta.subject} Kelas ${generatedMeta.grade} ${generatedMeta.level}`;
+  const title = `Soal ${generatedMeta.subject} Kelas ${generatedMeta.grade} ${generatedMeta.level} Semester ${generatedMeta.semester}`;
   const content = `
     <!doctype html>
     <html>
@@ -452,6 +471,7 @@ function exportWord() {
         <div class="meta">
           <p><strong>Jenjang:</strong> ${escapeHtml(generatedMeta.level)}<br>
           <strong>Kelas:</strong> ${escapeHtml(generatedMeta.grade)}<br>
+          <strong>Semester:</strong> ${escapeHtml(generatedMeta.semester)}<br>
           <strong>Mata pelajaran:</strong> ${escapeHtml(generatedMeta.subject)}<br>
           <strong>Kurikulum:</strong> ${escapeHtml(generatedMeta.curriculum)}<br>
           <strong>Jumlah:</strong> ${generatedQuestions.length} soal<br>
