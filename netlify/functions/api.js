@@ -239,7 +239,7 @@ function isAdmin(event) {
 }
 
 function verifyMidtransSignature(body) {
-  if (!PAYMENT_SERVER_KEY || !body.signature_key) return true;
+  if (!PAYMENT_SERVER_KEY || !body.signature_key) return false;
   const raw = `${body.order_id}${body.status_code}${body.gross_amount}${PAYMENT_SERVER_KEY}`;
   const expected = crypto.createHash("sha512").update(raw).digest("hex");
   return expected === body.signature_key;
@@ -269,6 +269,8 @@ exports.handler = async (event) => {
         midtransConfigured: Boolean(PAYMENT_SERVER_KEY),
         midtransMode: isMidtransProductionMode() ? "production" : "sandbox",
         midtransEnabledPayments: getMidtransEnabledPayments(),
+        webhookUrl: APP_URL ? `${APP_URL}/api/payment-webhook` : null,
+        emailConfigured: Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM),
         allowPaymentSimulation: false
       });
     }
