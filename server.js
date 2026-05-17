@@ -12,10 +12,12 @@ const storage = createStorage(root);
 const FREE_LIMIT = 1;
 const SESSION_DAYS = 30;
 const PAYMENT_AMOUNT = 15000;
-const RECEIVER_NAME = process.env.PAYMENT_RECEIVER_NAME || "Dhanie Kusnadi";
-const RECEIVER_NUMBER = process.env.PAYMENT_RECEIVER_NUMBER || "085271550657";
-const ADMIN_SECRET = process.env.ADMIN_SECRET || (isProduction ? "" : "dev-admin-secret");
-const PAYMENT_PROVIDER = process.env.PAYMENT_PROVIDER || "manual";
+const RECEIVER_NAME = (process.env.PAYMENT_RECEIVER_NAME || "Dhanie Kusnadi").trim();
+const RECEIVER_NUMBER = (process.env.PAYMENT_RECEIVER_NUMBER || "085271550657").trim();
+const ADMIN_SECRET = (process.env.ADMIN_SECRET || (isProduction ? "" : "dev-admin-secret")).trim();
+const PAYMENT_PROVIDER = (process.env.PAYMENT_PROVIDER || "manual").trim().toLowerCase();
+const PAYMENT_SERVER_KEY = (process.env.PAYMENT_SERVER_KEY || "").trim();
+const APP_URL = (process.env.APP_URL || "").trim();
 
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -166,10 +168,10 @@ async function sendPremiumEmail(order, token) {
 }
 
 async function createMidtransPayment(order) {
-  if (PAYMENT_PROVIDER !== "midtrans" || !process.env.PAYMENT_SERVER_KEY) return order;
+  if (PAYMENT_PROVIDER !== "midtrans" || !PAYMENT_SERVER_KEY) return order;
   const isSandbox = process.env.MIDTRANS_IS_PRODUCTION !== "true";
   const baseUrl = isSandbox ? "https://app.sandbox.midtrans.com" : "https://app.midtrans.com";
-  const auth = Buffer.from(`${process.env.PAYMENT_SERVER_KEY}:`).toString("base64");
+  const auth = Buffer.from(`${PAYMENT_SERVER_KEY}:`).toString("base64");
   const response = await fetch(`${baseUrl}/snap/v1/transactions`, {
     method: "POST",
     headers: {
@@ -182,8 +184,8 @@ async function createMidtransPayment(order) {
       customer_details: { email: order.email },
       item_details: [{ id: "premium-banksoal", price: order.amount, quantity: 1, name: "Premium BankSoal Pro" }],
       enabled_payments: ["gopay", "qris"],
-      callbacks: { finish: `${process.env.APP_URL || ""}/` },
-      gopay: { enable_callback: true, callback_url: `${process.env.APP_URL || ""}/api/payment-webhook` }
+      callbacks: { finish: `${APP_URL}/` },
+      gopay: { enable_callback: true, callback_url: `${APP_URL}/api/payment-webhook` }
     })
   });
   const payload = await response.json();
@@ -298,8 +300,8 @@ async function generateWithOpenAI(meta) {
 }
 
 function verifyMidtransSignature(body) {
-  if (!process.env.PAYMENT_SERVER_KEY || !body.signature_key) return true;
-  const raw = `${body.order_id}${body.status_code}${body.gross_amount}${process.env.PAYMENT_SERVER_KEY}`;
+  if (!PAYMENT_SERVER_KEY || !body.signature_key) return true;
+  const raw = `${body.order_id}${body.status_code}${body.gross_amount}${PAYMENT_SERVER_KEY}`;
   const expected = crypto.createHash("sha512").update(raw).digest("hex");
   return expected === body.signature_key;
 }
@@ -346,6 +348,8 @@ async function handleApi(req, res, pathname) {
       currency: "IDR",
       receiverName: RECEIVER_NAME,
       receiverNumber: RECEIVER_NUMBER,
+      paymentProvider: PAYMENT_PROVIDER,
+      midtransConfigured: Boolean(PAYMENT_SERVER_KEY),
       allowPaymentSimulation: !isProduction
     });
     return true;
