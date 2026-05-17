@@ -3,7 +3,7 @@
 BankSoal Pro adalah web app generator soal SD, SMP, dan SMA dengan:
 
 - pilihan jenjang, kelas, mata pelajaran, kurikulum, dan tingkat kesulitan
-- soal pilihan ganda sampai 100 butir
+- soal pilihan ganda sampai 20 butir untuk gratis dan sampai 100 butir untuk premium
 - export Word
 - akun login/register
 - limit gratis 1x per tahun di server

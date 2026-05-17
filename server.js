@@ -10,6 +10,8 @@ const isProduction = process.env.NODE_ENV === "production";
 const storage = createStorage(root);
 
 const FREE_LIMIT = 1;
+const FREE_MAX_QUESTIONS = 20;
+const PREMIUM_MAX_QUESTIONS = 100;
 const SESSION_DAYS = 30;
 const PAYMENT_AMOUNT = 15000;
 const RECEIVER_NAME = (process.env.PAYMENT_RECEIVER_NAME || "Dhanie Kusnadi").trim();
@@ -482,12 +484,13 @@ async function handleApi(req, res, pathname) {
     const body = await readBody(req);
     const user = await getCurrentUser(req);
     const anonId = getAnonId(req, res);
+    const maxQuestions = user?.premium ? PREMIUM_MAX_QUESTIONS : FREE_MAX_QUESTIONS;
     const meta = {
       level: String(body.level || "SD"),
       grade: String(body.grade || "1"),
       subject: String(body.subject || "Matematika"),
       semester: String(body.semester || "1") === "2" ? "2" : "1",
-      count: Math.max(1, Math.min(100, Number(body.count || 10))),
+      count: Math.max(1, Math.min(maxQuestions, Number(body.count || 10))),
       curriculum: String(body.curriculum || "Kurikulum Merdeka 2024"),
       difficulty: String(body.difficulty || "Campuran"),
       topic: String(body.topic || ""),
@@ -496,6 +499,9 @@ async function handleApi(req, res, pathname) {
     };
     const weekKey = getFreePeriodKey();
     if (!user?.premium) {
+      if (Number(body.count || 10) > FREE_MAX_QUESTIONS) {
+        return sendJson(res, 402, { error: `Mode gratis maksimal ${FREE_MAX_QUESTIONS} soal. Aktifkan premium untuk generate sampai ${PREMIUM_MAX_QUESTIONS} soal.` });
+      }
       const used = await storage.countGenerations({ userId: user?.id || null, anonId, weekKey });
       if (used >= FREE_LIMIT) return sendJson(res, 402, { error: "Kuota gratis tahun ini sudah habis. Silakan aktifkan premium." });
     }

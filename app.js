@@ -1,4 +1,6 @@
 const FREE_LIMIT = 1;
+const FREE_MAX_QUESTIONS = 20;
+const PREMIUM_MAX_QUESTIONS = 100;
 const TOKEN_PRICE_LABEL = "Rp15.000";
 const VALID_TOKENS = new Set([
   "BANKSOAL-15000",
@@ -181,10 +183,13 @@ function updateQuota() {
   els.planBadge.classList.toggle("muted", !premium);
   if (premium) {
     els.quotaText.textContent = "Premium aktif: pemakaian bebas";
+    els.count.max = String(PREMIUM_MAX_QUESTIONS);
     return;
   }
+  els.count.max = String(FREE_MAX_QUESTIONS);
+  if (Number(els.count.value || 0) > FREE_MAX_QUESTIONS) els.count.value = String(FREE_MAX_QUESTIONS);
   const remaining = Math.max(0, FREE_LIMIT - state.uses);
-  els.quotaText.textContent = `Sisa gratis: ${remaining}x tahun ini`;
+  els.quotaText.textContent = `Sisa gratis: ${remaining}x tahun ini, maksimal ${FREE_MAX_QUESTIONS} soal`;
 }
 
 function setPremiumActive(message = "Premium aktif. Pemakaian sekarang bebas.") {
@@ -435,12 +440,14 @@ function renderPaper(meta, questions) {
 }
 
 function getMetaFromForm() {
+  const premium = Boolean(currentUser?.premium) || getState().premium;
+  const maxQuestions = premium ? PREMIUM_MAX_QUESTIONS : FREE_MAX_QUESTIONS;
   return {
     level: els.level.value,
     grade: els.grade.value,
     subject: els.subject.value,
     semester: els.semester.value,
-    count: Math.max(1, Math.min(100, Number(els.count.value || 1))),
+    count: Math.max(1, Math.min(maxQuestions, Number(els.count.value || 1))),
     curriculum: els.curriculum.value,
     difficulty: els.difficulty.value,
     topic: els.topic.value.trim(),
