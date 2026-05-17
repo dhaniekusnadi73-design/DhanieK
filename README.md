@@ -135,8 +135,11 @@ Untuk aktivasi otomatis tanpa admin manual:
 PAYMENT_PROVIDER=midtrans
 PAYMENT_SERVER_KEY=isi_server_key_midtrans
 MIDTRANS_IS_PRODUCTION=false
+MIDTRANS_ENABLED_PAYMENTS=qris
 APP_URL=https://dhanie-k.vercel.app
 ```
+
+Gunakan `MIDTRANS_ENABLED_PAYMENTS=qris` dulu. Setelah GoPay aktif/disetujui di akun Midtrans, nilainya bisa diganti menjadi `qris,gopay`.
 
 4. Di dashboard Midtrans, isi Payment Notification URL:
 

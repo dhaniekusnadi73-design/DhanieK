@@ -20,6 +20,13 @@ function isMidtransProductionMode() {
   return process.env.MIDTRANS_IS_PRODUCTION === "true";
 }
 
+function getMidtransEnabledPayments() {
+  return (process.env.MIDTRANS_ENABLED_PAYMENTS || "qris")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function initStorage() {
   if (!storageReady) storageReady = storage.init();
   return storageReady;
@@ -136,9 +143,8 @@ async function createMidtransPayment(order) {
       transaction_details: { order_id: order.id, gross_amount: order.amount },
       customer_details: { email: order.email },
       item_details: [{ id: "premium-banksoal", price: order.amount, quantity: 1, name: "Premium BankSoal Pro" }],
-      enabled_payments: ["gopay", "qris"],
-      callbacks: { finish: `${APP_URL}/` },
-      gopay: { enable_callback: true, callback_url: `${APP_URL}/api/payment-webhook` }
+      enabled_payments: getMidtransEnabledPayments(),
+      callbacks: { finish: `${APP_URL}/` }
     })
   });
   const payload = await response.json();
@@ -233,6 +239,7 @@ exports.handler = async (event) => {
         paymentProvider: PAYMENT_PROVIDER,
         midtransConfigured: Boolean(PAYMENT_SERVER_KEY),
         midtransMode: isMidtransProductionMode() ? "production" : "sandbox",
+        midtransEnabledPayments: getMidtransEnabledPayments(),
         allowPaymentSimulation: false
       });
     }
