@@ -19,6 +19,12 @@ const PAYMENT_PROVIDER = (process.env.PAYMENT_PROVIDER || "manual").trim().toLow
 const PAYMENT_SERVER_KEY = (process.env.PAYMENT_SERVER_KEY || "").trim();
 const APP_URL = (process.env.APP_URL || "").trim();
 
+function isMidtransProductionMode() {
+  if (PAYMENT_SERVER_KEY.startsWith("SB-Mid-server-")) return false;
+  if (PAYMENT_SERVER_KEY.startsWith("Mid-server-")) return true;
+  return process.env.MIDTRANS_IS_PRODUCTION === "true";
+}
+
 const types = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
@@ -169,7 +175,7 @@ async function sendPremiumEmail(order, token) {
 
 async function createMidtransPayment(order) {
   if (PAYMENT_PROVIDER !== "midtrans" || !PAYMENT_SERVER_KEY) return order;
-  const isSandbox = process.env.MIDTRANS_IS_PRODUCTION !== "true";
+  const isSandbox = !isMidtransProductionMode();
   const baseUrl = isSandbox ? "https://app.sandbox.midtrans.com" : "https://app.midtrans.com";
   const auth = Buffer.from(`${PAYMENT_SERVER_KEY}:`).toString("base64");
   const response = await fetch(`${baseUrl}/snap/v1/transactions`, {
@@ -350,6 +356,7 @@ async function handleApi(req, res, pathname) {
       receiverNumber: RECEIVER_NUMBER,
       paymentProvider: PAYMENT_PROVIDER,
       midtransConfigured: Boolean(PAYMENT_SERVER_KEY),
+      midtransMode: isMidtransProductionMode() ? "production" : "sandbox",
       allowPaymentSimulation: !isProduction
     });
     return true;
