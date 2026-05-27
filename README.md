@@ -9,6 +9,7 @@ BankSoal Pro adalah web app generator soal SD, SMP, dan SMA dengan:
 - limit gratis 1x per tahun di server
 - premium via order pembayaran
 - token premium via email
+- token premium tampil di status order setelah lunas sebagai cadangan jika email belum aktif
 - webhook payment gateway
 - fallback generator gratis tanpa API AI
 - siap deploy ke Netlify/Vercel/Render/Railway/VPS

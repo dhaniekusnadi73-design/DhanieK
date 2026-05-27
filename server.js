@@ -233,7 +233,11 @@ async function markOrderPaid(orderId, paymentProvider = "gateway") {
   order.tokenSentAt = new Date().toISOString();
   const updated = await storage.updateOrder(order);
   if (updated.userId) await storage.setUserPremium(updated.userId, true);
-  await sendPremiumEmail(updated, updated.token);
+  try {
+    await sendPremiumEmail(updated, updated.token);
+  } catch (error) {
+    console.error(`[EMAIL ERROR] ${error.message}`);
+  }
   return updated;
 }
 
@@ -366,6 +370,7 @@ function isAdminRequest(req) {
 }
 
 function sanitizeOrder(order, includeToken = false) {
+  const canShowToken = includeToken || (order.status === "paid" && order.token);
   return {
     id: order.id,
     email: order.email,
@@ -374,7 +379,7 @@ function sanitizeOrder(order, includeToken = false) {
     method: order.method,
     status: order.status,
     paymentUrl: order.paymentUrl || null,
-    token: includeToken ? order.token || null : undefined,
+    token: canShowToken ? order.token || null : undefined,
     tokenSentAt: order.tokenSentAt || null,
     paidAt: order.paidAt || null,
     createdAt: order.createdAt || null
@@ -468,7 +473,7 @@ async function handleApi(req, res, pathname) {
   if (req.method === "GET" && pathname.startsWith("/api/order/")) {
     const order = await storage.getOrder(decodeURIComponent(pathname.replace("/api/order/", "")));
     if (!order) return sendJson(res, 404, { error: "Order tidak ditemukan." });
-    sendJson(res, 200, { order: { id: order.id, email: order.email, amount: order.amount, method: order.method, status: order.status, paymentUrl: order.paymentUrl || null, tokenSentAt: order.tokenSentAt || null } });
+    sendJson(res, 200, { order: sanitizeOrder(order) });
     return true;
   }
 

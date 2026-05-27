@@ -202,6 +202,9 @@ function setPremiumActive(message = "Premium aktif. Pemakaian sekarang bebas.") 
 function renderPaymentStatus(order, extra = "") {
   if (!order) return;
   const statusLabel = order.status === "paid" ? "Lunas" : "Menunggu pembayaran";
+  const tokenHtml = order.status === "paid" && order.token
+    ? `<br><strong>Token premium:</strong> <code>${escapeHtml(order.token)}</code>`
+    : "";
   els.paymentStatus.classList.remove("hidden");
   els.paymentStatus.innerHTML = `
     <strong>Order ${escapeHtml(order.id)}</strong><br>
@@ -209,6 +212,7 @@ function renderPaymentStatus(order, extra = "") {
     Metode: ${escapeHtml(order.method)}<br>
     Nominal: Rp${Number(order.amount).toLocaleString("id-ID")}<br>
     Status: ${escapeHtml(statusLabel)}
+    ${tokenHtml}
     ${order.paymentUrl ? `<br><a class="payment-link" href="${escapeHtml(order.paymentUrl)}" target="_blank" rel="noopener">Bayar otomatis sekarang</a>` : ""}
     ${extra ? `<br>${extra}` : ""}
   `;
@@ -253,9 +257,13 @@ async function loadCurrentUser() {
 async function checkOrderStatus() {
   if (!currentOrderId) return;
   const payload = await apiRequest(`/api/order/${encodeURIComponent(currentOrderId)}`);
-  renderPaymentStatus(payload.order, payload.order.status === "paid" ? "Token sudah dikirim ke email." : "");
+  const paidMessage = payload.order.token
+    ? "Token juga ditampilkan di sini sebagai cadangan jika email belum aktif."
+    : "Pembayaran diterima. Jika email belum aktif, hubungi admin dengan Order ID ini.";
+  renderPaymentStatus(payload.order, payload.order.status === "paid" ? paidMessage : "");
   if (payload.order.status === "paid") {
-    setPremiumActive("Pembayaran diterima. Token sudah dikirim ke email dan premium aktif.");
+    if (payload.order.token) els.tokenInput.value = payload.order.token;
+    setPremiumActive(payload.order.token ? "Pembayaran diterima. Premium aktif, token tersedia di status order." : "Pembayaran diterima. Premium aktif.");
     clearInterval(paymentPoller);
     paymentPoller = null;
   }
