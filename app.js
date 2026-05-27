@@ -199,11 +199,28 @@ function setPremiumActive(message = "Premium aktif. Pemakaian sekarang bebas.") 
   updateQuota();
 }
 
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const field = document.createElement("textarea");
+  field.value = text;
+  document.body.appendChild(field);
+  field.select();
+  document.execCommand("copy");
+  field.remove();
+}
+
 function renderPaymentStatus(order, extra = "") {
   if (!order) return;
   const statusLabel = order.status === "paid" ? "Lunas" : "Menunggu pembayaran";
   const tokenHtml = order.status === "paid" && order.token
-    ? `<br><strong>Token premium:</strong> <code>${escapeHtml(order.token)}</code>`
+    ? `<div class="token-result">
+        <span><strong>Token premium:</strong> <code>${escapeHtml(order.token)}</code></span>
+        <button type="button" class="mini-button" data-token-action="copy" data-token="${escapeHtml(order.token)}">Salin</button>
+        <button type="button" class="mini-button" data-token-action="activate" data-token="${escapeHtml(order.token)}">Pakai</button>
+      </div>`
     : "";
   els.paymentStatus.classList.remove("hidden");
   els.paymentStatus.innerHTML = `
@@ -586,6 +603,21 @@ els.paymentForm.addEventListener("submit", async (event) => {
   } catch (error) {
     els.paymentStatus.textContent = error.message;
   }
+});
+
+els.paymentStatus.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-token-action]");
+  if (!button) return;
+  const token = button.dataset.token || "";
+  if (!token) return;
+  if (button.dataset.tokenAction === "copy") {
+    await copyText(token);
+    els.tokenMessage.textContent = "Token sudah disalin.";
+    els.tokenMessage.className = "message success";
+    return;
+  }
+  els.tokenInput.value = token;
+  els.tokenForm.requestSubmit();
 });
 
 els.simulatePaidBtn.addEventListener("click", async () => {
